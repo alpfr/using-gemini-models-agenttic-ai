@@ -72,3 +72,29 @@ You can pass a custom task for the agents to collaborate on:
 ```bash
 python multi_agent_validation.py --project "your-gcp-project-id" --task "Create a fast sorting function in Python."
 ```
+
+## Running Google Agent Development Kit (ADK) Agent
+
+We have created a sample Google ADK project in `adk_project/`. To install and run the ADK agent:
+
+1. **Install ADK**:
+   ```bash
+   pip install google-adk
+   ```
+
+2. **Set Environment Variables**:
+   ```bash
+   export GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
+   ```
+
+3. **Run the ADK Agent (CLI Mode)**:
+   The ADK CLI will load the agent defined in `adk_project/agent.py` and run a terminal chat interface:
+   ```bash
+   adk run adk_project
+   ```
+
+4. **Launch the ADK Studio (Web UI)**:
+   Launch the web console to debug reasoning and tool calls step-by-step:
+   ```bash
+   adk web adk_project
+   ```
