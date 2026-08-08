@@ -116,3 +116,16 @@ If you have already built and pushed your docker image, you can deploy it or upd
    ```bash
    gcloud run services replace gcp/cloudrun.yaml --project="YOUR_GCP_PROJECT_ID"
    ```
+
+## Automated GitOps Deployment Pipeline (ArgoCD + GitHub Actions)
+
+We have created an automated GitOps pipeline configured via GitHub Actions in `.github/workflows/argocd-pipeline.yaml`.
+
+### How it works:
+1. **Developer Pushes Code**: You push code modifications (like Python script edits or configuration tweaks) to the `main` branch.
+2. **CI Job Triggers**: GitHub Actions triggers the build:
+   - Authenticates to GCP Artifact Registry via Workload Identity Federation.
+   - Builds the Docker image, tagging it with the Git commit SHA (`${{ github.sha }}`).
+   - Pushes the image to Google Artifact Registry.
+3. **Manifest Update (Write-back)**: The pipeline updates the image tag directly in `k8s/deployment.yaml` and commits the changes back to your GitHub repository with `[skip ci]`.
+4. **ArgoCD Reconciliation**: ArgoCD detects the change in `k8s/deployment.yaml`, pulls the updated image, and deploys it automatically to your GKE cluster with zero downtime.
