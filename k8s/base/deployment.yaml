@@ -1,26 +1,11 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: gemini-apps
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: gemini-validator-sa
-  namespace: gemini-apps
-  annotations:
-    # Set this to link the Kubernetes ServiceAccount with a GCP Service Account via Workload Identity
-    iam.gke.io/gcp-service-account: gemini-validator@YOUR_GCP_PROJECT_ID.iam.gserviceaccount.com
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gemini-validator
-  namespace: gemini-apps
   labels:
     app: gemini-validator
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: gemini-validator
@@ -61,19 +46,5 @@ spec:
             cpu: 100m
             memory: 128Mi
           limits:
-            cpu: 500m
+            cpu: 200m
             memory: 256Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gemini-validator-service
-  namespace: gemini-apps
-spec:
-  selector:
-    app: gemini-validator
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
-  type: ClusterIP

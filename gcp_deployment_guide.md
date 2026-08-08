@@ -19,7 +19,22 @@ using-gemini-models/
 │   └── cloudrun.yaml             # Declarative Knative Cloud Run manifest
 ├── k8s/
 │   ├── argocd-app.yaml           # ArgoCD Application definition
-│   └── deployment.yaml           # Kubernetes Deployment, Service, ServiceAccount
+│   ├── base/                     # Kustomize Base manifests (Common configs)
+│   │   ├── kustomization.yaml
+│   │   ├── namespace.yaml
+│   │   ├── serviceaccount.yaml
+│   │   ├── service.yaml
+│   │   └── deployment.yaml
+│   ├── overlays/                 # Kustomize Overlays (Env-specific overrides)
+│   │   └── dev/
+│   │       ├── kustomization.yaml
+│   │       └── patches/
+│   │           ├── replica-patch.yaml
+│   │           └── env-patch.yaml
+│   └── helm-chart/               # Helm Chart layout structure
+│       ├── Chart.yaml            # Chart metadata descriptor
+│       ├── values.yaml           # Value parameter files
+│       └── templates/            # Resource templates (deployment.yaml, service.yaml)
 ├── app.py                        # FastAPI health check and validation server
 ├── Dockerfile                    # Containerization script
 ├── validate_gemini.py            # Basic CLI validation script
@@ -157,10 +172,11 @@ CMD ["python", "app.py"]
 We deploy the application declaratively using a GitOps pull-model via ArgoCD.
 
 ### Step 5.1: Apply manifests
-The Kubernetes specifications in [k8s/deployment.yaml](file:///Users/alpfr/Downloads/scripts/using-gemini-models/k8s/deployment.yaml) configure:
-*   `ServiceAccount` with GCP Workload Identity annotations.
-*   `Deployment` running 2 replicas with port `8080` exposed and health checks active.
-*   `Service` exposing port `80`.
+The Kubernetes specifications are structured under `k8s/base/` and configured via `k8s/overlays/`:
+*   `Namespace`: Declared in `k8s/base/namespace.yaml` for isolating resources.
+*   `ServiceAccount`: Declared in `k8s/base/serviceaccount.yaml` with GCP Workload Identity annotations.
+*   `Deployment`: Declared in `k8s/base/deployment.yaml` with port `8080` exposed and health checks active. Replicas are overridden dynamically in overlays.
+*   `Service`: Declared in `k8s/base/service.yaml` exposing port `80`.
 
 ### Step 5.2: Bind GKE Workload Identity
 Link GKE's ServiceAccount to your GCP Service Account to authorize pods to contact Vertex AI:
@@ -185,7 +201,7 @@ The GitHub Actions workflow [.github/workflows/argocd-pipeline.yaml](file:///Use
 
 1. **Trigger**: Code changes push to the `main` branch.
 2. **Build**: Authenticates with GCP via Workload Identity, builds the Docker container, and pushes it to your GCP Artifact Registry.
-3. **Commit Back**: The runner updates the image tag in `k8s/deployment.yaml` with the current Git commit SHA and pushes the updated manifest back to the repository.
+3. **Commit Back**: The runner updates the image tag in `k8s/overlays/dev/kustomization.yaml` using Kustomize and pushes the updated manifest back to the repository.
 4. **ArgoCD Sync**: ArgoCD detects the manifest edit in Git and rolls out the updated container automatically.
 
 ---

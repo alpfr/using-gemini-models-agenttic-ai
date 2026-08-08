@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-gemini-validator
+  labels:
+    app: {{ .Release.Name }}-gemini-validator
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-gemini-validator
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-gemini-validator
+    spec:
+      containers:
+      - name: validator
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "{{ .Values.gcp.projectId }}"
+        - name: GOOGLE_CLOUD_LOCATION
+          value: "{{ .Values.gcp.location }}"
+        - name: PORT
+          value: "8080"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}

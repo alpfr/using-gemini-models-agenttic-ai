@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gemini-validator
+description: A Helm chart for deploying Gemini validator application on GKE/Kubernetes
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
