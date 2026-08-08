@@ -48,3 +48,10 @@ spec:
           limits:
             cpu: 200m
             memory: 256Mi
+        volumeMounts:
+        - name: validator-storage
+          mountPath: /app/data
+      volumes:
+      - name: validator-storage
+        persistentVolumeClaim:
+          claimName: gemini-validator-pvc

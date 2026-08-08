@@ -20,3 +20,9 @@ resources:
   requests:
     cpu: 100m
     memory: 128Mi
+
+persistence:
+  enabled: true
+  storageClass: "standard-rwo"
+  size: 10Gi
+  mountPath: /app/data

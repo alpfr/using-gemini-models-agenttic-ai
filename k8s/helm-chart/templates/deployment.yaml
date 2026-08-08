@@ -42,3 +42,14 @@ spec:
           periodSeconds: 10
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
+        {{- if .Values.persistence.enabled }}
+        volumeMounts:
+        - name: validator-storage
+          mountPath: {{ .Values.persistence.mountPath | quote }}
+        {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+      - name: validator-storage
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-gemini-validator-pvc
+      {{- end }}
