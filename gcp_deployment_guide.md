@@ -4,6 +4,33 @@ This comprehensive guide outlines the end-to-end process of developing, containe
 
 ---
 
+## Project Directory Structure
+
+```text
+using-gemini-models/
+├── .github/
+│   └── workflows/
+│       └── argocd-pipeline.yaml  # GitHub Actions GitOps Pipeline
+├── adk_project/
+│   ├── __init__.py
+│   └── agent.py                  # Google ADK Agent & Tools definition
+├── gcp/
+│   ├── cloudbuild.yaml           # GCP Cloud Build script
+│   └── cloudrun.yaml             # Declarative Knative Cloud Run manifest
+├── k8s/
+│   ├── argocd-app.yaml           # ArgoCD Application definition
+│   └── deployment.yaml           # Kubernetes Deployment, Service, ServiceAccount
+├── app.py                        # FastAPI health check and validation server
+├── Dockerfile                    # Containerization script
+├── validate_gemini.py            # Basic CLI validation script
+├── multi_agent_validation.py     # Multi-Agent Python validation script
+├── requirements.txt              # Project dependencies
+├── gcp_deployment_guide.md       # Comprehensive guide (this file)
+└── README.md                     # General setup and execution guide
+```
+
+---
+
 ## 1. GCP Environment & IAM Setup
 
 To run Gemini models on Vertex AI, you need to enable the services, configure local authentication, and assign IAM roles.
