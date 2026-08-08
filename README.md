@@ -1,10 +1,56 @@
-# Gemini 3.5 Flash GCP Validation Project
+# Gemini 3.5 Flash GCP Validation & GitOps Project
 
-This directory contains a simple Python implementation to validate connection, credentials, and settings for accessing the **Gemini 3.5 Flash** model via Google Cloud's **Vertex AI**.
+This directory contains a complete framework to validate connection, credentials, and settings for accessing the **Gemini 3.5 Flash** model via Google Cloud's **Vertex AI**. It supports CLI scripts, Google Agent Development Kit (ADK) configurations, a FastAPI health check server wrapper, and automated GitOps Kubernetes deployment pipelines via Kustomize, Helm, and ArgoCD.
+
+---
+
+## Project Directory Structure
+
+```text
+using-gemini-models/
+├── .github/
+│   └── workflows/
+│       └── argocd-pipeline.yaml  # GitHub Actions GitOps Pipeline
+├── adk_project/
+│   ├── __init__.py
+│   └── agent.py                  # Google ADK Agent & Tools definition
+├── gcp/
+│   ├── cloudbuild.yaml           # GCP Cloud Build script
+│   └── cloudrun.yaml             # Declarative Knative Cloud Run manifest
+├── k8s/
+│   ├── argocd-app.yaml           # ArgoCD Application definition
+│   ├── base/                     # Kustomize Base manifests (Common configs)
+│   │   ├── kustomization.yaml
+│   │   ├── namespace.yaml
+│   │   ├── serviceaccount.yaml
+│   │   ├── service.yaml
+│   │   ├── deployment.yaml       # Deployment mounted with PVC & env from ConfigMap
+│   │   ├── pvc.yaml              # 10Gi standard PersistentVolumeClaim
+│   │   └── configmap.yaml        # ConfigMap holding location/port configuration
+│   ├── overlays/                 # Kustomize Overlays (Env-specific overrides)
+│   │   └── dev/
+│   │       ├── kustomization.yaml
+│   │       └── patches/
+│   │           ├── replica-patch.yaml
+│   │           └── env-patch.yaml
+│   └── helm-chart/               # Helm Chart layout structure
+│       ├── Chart.yaml            # Chart metadata descriptor
+│       ├── values.yaml           # Value parameter files (replica, persistence settings)
+│       └── templates/            # Resource templates (deployment, service, pvc, configmap)
+├── app.py                        # FastAPI health check and validation server
+├── Dockerfile                    # Containerization script
+├── validate_gemini.py            # Basic CLI validation script
+├── multi_agent_validation.py     # Multi-Agent Python validation script
+├── requirements.txt              # Project dependencies
+├── gcp_deployment_guide.md       # Comprehensive guide
+└── README.md                     # General setup and execution guide (this file)
+```
+
+---
 
 ## Prerequisites
 
-Before running the validation script:
+Before running any script or deployment:
 
 1. **Google Cloud SDK (`gcloud`)**: Install `gcloud` and log in.
 2. **Vertex AI API**: Ensure the Vertex AI API (`aiplatform.googleapis.com`) is enabled in your GCP project.
@@ -26,6 +72,8 @@ Before running the validation script:
          --role="roles/aiplatform.user"
      ```
 
+---
+
 ## Setup Instructions
 
 1. Set up a virtual environment (optional but recommended):
@@ -44,16 +92,14 @@ Before running the validation script:
    export GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
    ```
 
-## Running Validation
+---
 
-Run the script to test text generation:
+## Running Validation Locally
+
+### 1. Basic Text & Multimodal Validation
+Run the script to test text generation and multimodal inputs (creates a temporary test image):
 ```bash
 python validate_gemini.py
-```
-
-Or test both text generation and multimodal capabilities (sends a dynamically generated image to Gemini):
-```bash
-python validate_gemini.py --test-multimodal
 ```
 
 You can specify a custom location/region or prompt using command-line arguments:
@@ -61,71 +107,56 @@ You can specify a custom location/region or prompt using command-line arguments:
 python validate_gemini.py --project "your-gcp-project-id" --location "us-central1" --prompt "What is the capital of France?"
 ```
 
-## Running Multi-Agent Validation
-
+### 2. Multi-Agent Python Collaboration
 To run the multi-agent orchestration script where a Developer Agent writes code and a QA Agent reviews and generates unit tests:
 ```bash
 python multi_agent_validation.py
 ```
 
-You can pass a custom task for the agents to collaborate on:
-```bash
-python multi_agent_validation.py --project "your-gcp-project-id" --task "Create a fast sorting function in Python."
-```
+### 3. Google Agent Development Kit (ADK) Agent
+We have created a sample Google ADK project in `adk_project/`.
+*   **Run the ADK Agent (CLI Mode)**:
+    ```bash
+    adk run adk_project
+    ```
+*   **Launch the ADK Studio (Web UI)**:
+    ```bash
+    adk web adk_project
+    ```
 
-## Running Google Agent Development Kit (ADK) Agent
-
-We have created a sample Google ADK project in `adk_project/`. To install and run the ADK agent:
-
-1. **Install ADK**:
-   ```bash
-   pip install google-adk
-   ```
-
-2. **Set Environment Variables**:
-   ```bash
-   export GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
-   ```
-
-3. **Run the ADK Agent (CLI Mode)**:
-   The ADK CLI will load the agent defined in `adk_project/agent.py` and run a terminal chat interface:
-   ```bash
-   adk run adk_project
-   ```
-
-4. **Launch the ADK Studio (Web UI)**:
-   Launch the web console to debug reasoning and tool calls step-by-step:
-   ```bash
-   adk web adk_project
-   ```
+---
 
 ## Deploying directly to GCP (Google Cloud Run & Cloud Build)
 
 We have created declarative configurations for GCP inside the `gcp/` directory:
 
 ### Option A: Automate build and deploy via Google Cloud Build
-Run the following command in your terminal to build the docker image and deploy it directly to Google Cloud Run:
 ```bash
 gcloud builds submit --config gcp/cloudbuild.yaml --project="YOUR_GCP_PROJECT_ID"
 ```
 
 ### Option B: Declarative Cloud Run deployment
-If you have already built and pushed your docker image, you can deploy it or update it declaratively using the Knative service manifest:
 1. Update `YOUR_GCP_PROJECT_ID` inside `gcp/cloudrun.yaml` with your actual project ID.
 2. Deploy the service:
    ```bash
    gcloud run services replace gcp/cloudrun.yaml --project="YOUR_GCP_PROJECT_ID"
    ```
 
+---
+
 ## Automated GitOps Deployment Pipeline (ArgoCD + GitHub Actions)
 
-We have created an automated GitOps pipeline configured via GitHub Actions in `.github/workflows/argocd-pipeline.yaml`.
+We have configured a complete, environment-aware GitOps layout under `k8s/` and a deployment workflow in `.github/workflows/argocd-pipeline.yaml`.
 
-### How it works:
-1. **Developer Pushes Code**: You push code modifications (like Python script edits or configuration tweaks) to the `main` branch.
-2. **CI Job Triggers**: GitHub Actions triggers the build:
-   - Authenticates to GCP Artifact Registry via Workload Identity Federation.
-   - Builds the Docker image, tagging it with the Git commit SHA (`${{ github.sha }}`).
-   - Pushes the image to Google Artifact Registry.
-3. **Manifest Update (Write-back)**: The pipeline updates the image tag directly in `k8s/deployment.yaml` and commits the changes back to your GitHub repository with `[skip ci]`.
-4. **ArgoCD Reconciliation**: ArgoCD detects the change in `k8s/deployment.yaml`, pulls the updated image, and deploys it automatically to your GKE cluster with zero downtime.
+### 1. GitOps Layout Models
+*   **Kustomize Structure (`base` & `overlays`)**:
+    *   `base/`: Common manifests for Deployment, Service, ServiceAccount, PVC, and ConfigMap.
+    *   `overlays/dev/`: Customizes the base config (e.g. replicas set to 2, dev environment variables).
+*   **Helm Chart (`helm-chart`)**:
+    *   Packaged resources mapping values parameterization in `values.yaml` (replica counts, persistent volumes, environment configs).
+
+### 2. CI/CD Pipeline Flow
+1. **Developer Pushes Code**: You push code modifications (excluding manifests and docs) to the `main` branch.
+2. **CI Pipeline Triggers**: GitHub Actions builds the Docker container, pushes it to your GCP Artifact Registry, and tags it with the Git commit SHA.
+3. **GitOps Write-back**: The pipeline updates the image tag inside `k8s/overlays/dev/kustomization.yaml` using Kustomize and commits it back to the repository.
+4. **ArgoCD Reconciliation**: ArgoCD detects the change in `k8s/overlays/dev/kustomization.yaml` and synchronizes the state to GKE with zero downtime.
