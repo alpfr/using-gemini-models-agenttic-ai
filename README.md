@@ -98,3 +98,21 @@ We have created a sample Google ADK project in `adk_project/`. To install and ru
    ```bash
    adk web adk_project
    ```
+
+## Deploying directly to GCP (Google Cloud Run & Cloud Build)
+
+We have created declarative configurations for GCP inside the `gcp/` directory:
+
+### Option A: Automate build and deploy via Google Cloud Build
+Run the following command in your terminal to build the docker image and deploy it directly to Google Cloud Run:
+```bash
+gcloud builds submit --config gcp/cloudbuild.yaml --project="YOUR_GCP_PROJECT_ID"
+```
+
+### Option B: Declarative Cloud Run deployment
+If you have already built and pushed your docker image, you can deploy it or update it declaratively using the Knative service manifest:
+1. Update `YOUR_GCP_PROJECT_ID` inside `gcp/cloudrun.yaml` with your actual project ID.
+2. Deploy the service:
+   ```bash
+   gcloud run services replace gcp/cloudrun.yaml --project="YOUR_GCP_PROJECT_ID"
+   ```
