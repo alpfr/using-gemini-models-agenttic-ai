@@ -25,7 +25,8 @@ using-gemini-models/
 │   │   ├── serviceaccount.yaml
 │   │   ├── service.yaml
 │   │   ├── deployment.yaml
-│   │   └── pvc.yaml
+│   │   ├── pvc.yaml
+│   │   └── configmap.yaml
 │   ├── overlays/                 # Kustomize Overlays (Env-specific overrides)
 │   │   └── dev/
 │   │       ├── kustomization.yaml
@@ -35,7 +36,7 @@ using-gemini-models/
 │   └── helm-chart/               # Helm Chart layout structure
 │       ├── Chart.yaml            # Chart metadata descriptor
 │       ├── values.yaml           # Value parameter files
-│       └── templates/            # Resource templates (deployment.yaml, service.yaml, pvc.yaml)
+│       └── templates/            # Resource templates (deployment.yaml, service.yaml, pvc.yaml, configmap.yaml)
 ├── app.py                        # FastAPI health check and validation server
 ├── Dockerfile                    # Containerization script
 ├── validate_gemini.py            # Basic CLI validation script
